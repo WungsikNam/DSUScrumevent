@@ -288,4 +288,4 @@ function resolveReaction(room) {
 }
 
 const PORT = process.env.PORT || 3001;
-httpServer.listen(PORT, () => console.log(`✅ 서버 실행 중: http://localhost:${PORT}`));
+httpServer.listen(PORT, '0.0.0.0', () => console.log(`✅ 서버 실행 중: http://0.0.0.0:${PORT}`));
