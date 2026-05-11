@@ -1,12 +1,15 @@
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-const cors = require('cors');
+const path = require('path');
 
 const app = express();
-app.use(cors());
 const httpServer = createServer(app);
-const io = new Server(httpServer, { cors: { origin: '*' } });
+const io = new Server(httpServer);
+
+// React 빌드 정적 파일 서빙
+app.use(express.static(path.join(__dirname, '../client/dist')));
+app.get('*', (_, res) => res.sendFile(path.join(__dirname, '../client/dist/index.html')));
 
 const rooms = {};
 
