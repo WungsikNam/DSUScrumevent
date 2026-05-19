@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "cd server && npm install && cd ../client && npm install && npm run build",
-    "start": "node server/index.js"
+    "start": "cd server && node index.js"
   },
   "dependencies": {
     "@upstash/redis": "^1.34.0",
