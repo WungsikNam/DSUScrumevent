@@ -1,4 +1,18 @@
-export default function CountdownScreen({ count }) {
+import { useState, useEffect } from 'react';
+
+export default function CountdownScreen({ goTime }) {
+  const [count, setCount] = useState(3);
+
+  useEffect(() => {
+    const update = () => {
+      const remaining = Math.max(0, Math.ceil((goTime - Date.now()) / 1000));
+      setCount(remaining);
+    };
+    update();
+    const id = setInterval(update, 100);
+    return () => clearInterval(id);
+  }, [goTime]);
+
   return (
     <div style={{
       minHeight: '100dvh', background: '#0f0f1a', color: '#fff',
@@ -10,7 +24,7 @@ export default function CountdownScreen({ count }) {
         color: count === 1 ? '#ff6b6b' : count === 2 ? '#ffd43b' : '#51cf66',
         transition: 'color 0.3s',
       }}>
-        {count}
+        {count || 'GO!'}
       </div>
       <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.35)' }}>Get your spacebar ready!</div>
     </div>

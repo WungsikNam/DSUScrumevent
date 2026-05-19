@@ -1,4 +1,4 @@
-const { startGame } = require('../lib/game');
+const { startGame, publicRoom } = require('../lib/game');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,7 +9,7 @@ module.exports = async (req, res) => {
   try {
     const { playerId } = req.body;
     const room = await startGame(playerId);
-    res.json({ ok: true, room });
+    res.json({ ok: true, room: publicRoom(room) });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }

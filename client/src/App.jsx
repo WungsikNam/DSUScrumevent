@@ -1,58 +1,73 @@
-import { useState, useEffect, useCallback } from 'react';
-import { socket } from './socket';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { getRoom, joinRoom, leaveRoom, startGame, sendPress, resetGame } from './api';
 import LoginScreen from './components/LoginScreen';
 import LobbyScreen from './components/LobbyScreen';
 import CountdownScreen from './components/CountdownScreen';
 import GameScreen from './components/GameScreen';
 import ResultsScreen from './components/ResultsScreen';
 
+function getOrCreatePlayerId() {
+  let id = sessionStorage.getItem('playerId');
+  if (!id) { id = crypto.randomUUID(); sessionStorage.setItem('playerId', id); }
+  return id;
+}
+
 export default function App() {
+  const playerId = useRef(getOrCreatePlayerId()).current;
   const [joined, setJoined] = useState(false);
   const [isHost, setIsHost] = useState(false);
-  const [myId, setMyId] = useState('');
-  const [room, setRoom] = useState({ state: 'lobby', players: [], target: 100 });
-  const [countdown, setCountdown] = useState(3);
+  const [room, setRoom] = useState({ state: 'lobby', players: [], target: 150 });
   const [loginError, setLoginError] = useState('');
 
+  // Poll room state
   useEffect(() => {
-    const onConnect = () => setMyId(socket.id);
-    const onJoined = ({ isHost }) => { setIsHost(isHost); setJoined(true); setLoginError(''); };
-    const onJoinError = (msg) => setLoginError(msg);
-    const onRoomUpdate = (state) => setRoom(state);
-    const onCountdown = ({ count }) => setCountdown(count);
-
-    socket.on('connect', onConnect);
-    socket.on('joined', onJoined);
-    socket.on('join_error', onJoinError);
-    socket.on('room_update', onRoomUpdate);
-    socket.on('countdown', onCountdown);
-
-    return () => {
-      socket.off('connect', onConnect);
-      socket.off('joined', onJoined);
-      socket.off('join_error', onJoinError);
-      socket.off('room_update', onRoomUpdate);
-      socket.off('countdown', onCountdown);
+    if (!joined) return;
+    const poll = async () => {
+      try {
+        const r = await getRoom();
+        setRoom(r);
+        const me = r.players?.find(p => p.id === playerId);
+        if (me) setIsHost(!!me.isHost);
+      } catch {}
     };
-  }, []);
+    poll();
+    const id = setInterval(poll, 300);
+    return () => clearInterval(id);
+  }, [joined, playerId]);
 
-  const join = useCallback((nickname, hostPassword) => {
+  const join = useCallback(async (nickname, hostPassword) => {
     setLoginError('');
-    socket.emit('join', { nickname, hostPassword });
-  }, []);
+    try {
+      const res = await joinRoom(playerId, nickname, hostPassword);
+      if (res.error) { setLoginError(res.error); return; }
+      const me = res.room?.players?.find(p => p.id === playerId);
+      setIsHost(!!me?.isHost);
+      setRoom(res.room);
+      setJoined(true);
+    } catch { setLoginError('Connection failed. Please try again.'); }
+  }, [playerId]);
 
-  const startGame = useCallback(() => socket.emit('start_game'), []);
-  const press = useCallback(() => socket.emit('press'), []);
-  const leave = useCallback(() => {
-    socket.emit('leave');
+  const leave = useCallback(async () => {
+    await leaveRoom(playerId).catch(() => {});
+    sessionStorage.removeItem('playerId');
     setJoined(false);
     setIsHost(false);
     setRoom({ state: 'lobby', players: [], target: 150 });
-  }, []);
+  }, [playerId]);
+
+  const start = useCallback(() => startGame(playerId).catch(() => {}), [playerId]);
+  const press = useCallback((count) => sendPress(playerId, count).catch(() => {}), [playerId]);
+  const reset = useCallback(() => resetGame(playerId).catch(() => {}), [playerId]);
 
   if (!joined) return <LoginScreen onJoin={join} error={loginError} />;
-  if (room.state === 'countdown') return <CountdownScreen count={countdown} />;
-  if (room.state === 'playing') return <GameScreen room={room} myId={myId} onPress={press} />;
-  if (room.state === 'results') return <ResultsScreen room={room} myId={myId} />;
-  return <LobbyScreen room={room} isHost={isHost} myId={myId} onStart={startGame} onLeave={leave} />;
+
+  // Client-side: treat countdown as playing if goTime has passed
+  const effectiveState = room.state === 'countdown' && room.goTime && Date.now() >= room.goTime
+    ? 'playing'
+    : room.state;
+
+  if (effectiveState === 'countdown') return <CountdownScreen goTime={room.goTime} />;
+  if (effectiveState === 'playing') return <GameScreen room={room} myId={playerId} onPress={press} />;
+  if (effectiveState === 'results') return <ResultsScreen room={room} myId={playerId} isHost={isHost} onReset={reset} />;
+  return <LobbyScreen room={room} isHost={isHost} myId={playerId} onStart={start} onLeave={leave} />;
 }

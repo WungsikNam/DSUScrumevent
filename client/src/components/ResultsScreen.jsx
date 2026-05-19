@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 const MEDALS = ['🥇', '🥈', '🥉'];
 const RANK_COLORS = ['#ffd700', '#c0c0c0', '#cd7f32'];
 
-export default function ResultsScreen({ room, myId }) {
+export default function ResultsScreen({ room, myId, isHost, onReset }) {
   const [timer, setTimer] = useState(15);
 
   useEffect(() => {
@@ -63,6 +63,11 @@ export default function ResultsScreen({ room, myId }) {
       <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', marginTop: 8 }}>
         {timer > 0 ? `Returning to lobby in ${timer}s...` : 'Returning to lobby...'}
       </div>
+      {isHost && (
+        <button onClick={onReset} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)', borderRadius: 8, padding: '8px 20px', fontSize: 13, cursor: 'pointer' }}>
+          Back to Lobby Now
+        </button>
+      )}
     </div>
   );
 }
