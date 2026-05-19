@@ -1,58 +1,58 @@
-import { useState, useEffect } from 'react';
-import socket from './socket';
-import Join from './pages/Join';
-import Lobby from './pages/Lobby';
-import RPS from './games/RPS';
-import TenSecond from './games/TenSecond';
-import Reaction from './games/Reaction';
-import GameOver from './games/GameOver';
+import { useState, useEffect, useCallback } from 'react';
+import { socket } from './socket';
+import LoginScreen from './components/LoginScreen';
+import LobbyScreen from './components/LobbyScreen';
+import CountdownScreen from './components/CountdownScreen';
+import GameScreen from './components/GameScreen';
+import ResultsScreen from './components/ResultsScreen';
 
 export default function App() {
-  const [page, setPage] = useState('join');
-  const [myName, setMyName] = useState('');
-  const [room, setRoom] = useState({ code: '', players: [], isHost: false });
+  const [joined, setJoined] = useState(false);
+  const [isHost, setIsHost] = useState(false);
+  const [myId, setMyId] = useState('');
+  const [room, setRoom] = useState({ state: 'lobby', players: [], target: 100 });
+  const [countdown, setCountdown] = useState(3);
+  const [loginError, setLoginError] = useState('');
 
   useEffect(() => {
-    socket.on('room_joined', ({ code, players, isHost }) => {
-      setRoom({ code, players, isHost });
-      setPage('lobby');
-    });
+    const onConnect = () => setMyId(socket.id);
+    const onJoined = ({ isHost }) => { setIsHost(isHost); setJoined(true); setLoginError(''); };
+    const onJoinError = (msg) => setLoginError(msg);
+    const onRoomUpdate = (state) => setRoom(state);
+    const onCountdown = ({ count }) => setCountdown(count);
 
-    socket.on('room_updated', ({ players }) => {
-      setRoom(prev => ({ ...prev, players }));
-    });
-
-    socket.on('game_start', ({ game }) => {
-      setPage(game);
-    });
-
-    socket.on('game_over', () => {
-      setPage('gameover');
-    });
-
-    socket.on('error', ({ message }) => {
-      alert(message);
-    });
+    socket.on('connect', onConnect);
+    socket.on('joined', onJoined);
+    socket.on('join_error', onJoinError);
+    socket.on('room_update', onRoomUpdate);
+    socket.on('countdown', onCountdown);
 
     return () => {
-      socket.off('room_joined');
-      socket.off('room_updated');
-      socket.off('game_start');
-      socket.off('game_over');
-      socket.off('error');
+      socket.off('connect', onConnect);
+      socket.off('joined', onJoined);
+      socket.off('join_error', onJoinError);
+      socket.off('room_update', onRoomUpdate);
+      socket.off('countdown', onCountdown);
     };
   }, []);
 
-  const commonProps = { room, myId: socket.id };
+  const join = useCallback((nickname, hostPassword) => {
+    setLoginError('');
+    socket.emit('join', { nickname, hostPassword });
+  }, []);
 
-  return (
-    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      {page === 'join'     && <Join setMyName={setMyName} />}
-      {page === 'lobby'    && <Lobby {...commonProps} />}
-      {page === 'rps'      && <RPS {...commonProps} />}
-      {page === 'tensecond' && <TenSecond {...commonProps} />}
-      {page === 'reaction'  && <Reaction {...commonProps} />}
-      {page === 'gameover'  && <GameOver {...commonProps} />}
-    </div>
-  );
+  const startGame = useCallback(() => socket.emit('start_game'), []);
+  const press = useCallback(() => socket.emit('press'), []);
+  const leave = useCallback(() => {
+    socket.emit('leave');
+    setJoined(false);
+    setIsHost(false);
+    setRoom({ state: 'lobby', players: [], target: 150 });
+  }, []);
+
+  if (!joined) return <LoginScreen onJoin={join} error={loginError} />;
+  if (room.state === 'countdown') return <CountdownScreen count={countdown} />;
+  if (room.state === 'playing') return <GameScreen room={room} myId={myId} onPress={press} />;
+  if (room.state === 'results') return <ResultsScreen room={room} myId={myId} />;
+  return <LobbyScreen room={room} isHost={isHost} myId={myId} onStart={startGame} onLeave={leave} />;
 }

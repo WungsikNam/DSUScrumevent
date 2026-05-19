@@ -1,112 +1,100 @@
-import { useState } from 'react';
-import socket from '../socket';
-
-const s = {
-  wrap: {
-    minHeight: '100dvh', display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center', padding: '24px', gap: '32px'
-  },
-  title: { fontSize: '2.4rem', fontWeight: 900, textAlign: 'center', lineHeight: 1.2 },
-  sub: { color: '#a78bfa', fontSize: '1rem', textAlign: 'center', marginTop: '8px' },
-  card: {
-    background: '#1a1a2e', borderRadius: '20px', padding: '28px',
-    width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '16px'
-  },
-  label: { fontSize: '0.85rem', color: '#a78bfa', fontWeight: 700, marginBottom: '4px' },
-  input: {
-    width: '100%', padding: '14px 16px', borderRadius: '12px',
-    background: '#0f0f1a', border: '2px solid #2d2d4e', color: '#fff',
-    fontSize: '1.1rem', outline: 'none'
-  },
-  btn: (color) => ({
-    width: '100%', padding: '16px', borderRadius: '14px',
-    background: color, color: '#fff', fontSize: '1.1rem', fontWeight: 700,
-    transition: 'opacity 0.15s'
-  }),
-  divider: {
-    display: 'flex', alignItems: 'center', gap: '10px', color: '#4a4a6a'
-  },
-  line: { flex: 1, height: '1px', background: '#2d2d4e' }
-};
+import { useState, useEffect } from 'react';
+import { useSession } from '../SessionContext';
+import { theme, cuteCard, cuteBtn } from '../theme';
+import WeeklyLeaderboard from '../components/WeeklyLeaderboard';
 
 export default function Join() {
-  const [name, setName] = useState('');
-  const [code, setCode] = useState('');
-  const [tab, setTab] = useState('create'); // 'create' | 'join'
+  const { join, joinError, setJoinError } = useSession();
+  const [nickname, setNickname] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const handleCreate = () => {
-    if (!name.trim()) return alert('이름을 입력해 주세요!');
-    socket.emit('create_room', { name: name.trim() });
-  };
+  // ?host=PASSWORD in URL grants host access
+  const hostPassword = new URLSearchParams(window.location.search).get('host') || '';
+
+  useEffect(() => {
+    setJoinError('');
+  }, [nickname, setJoinError]);
 
   const handleJoin = () => {
-    if (!name.trim()) return alert('이름을 입력해 주세요!');
-    if (!code.trim()) return alert('방 코드를 입력해 주세요!');
-    socket.emit('join_room', { name: name.trim(), code: code.trim().toUpperCase() });
+    const name = nickname.trim();
+    if (!name) { setJoinError('Please enter a nickname.'); return; }
+    setBusy(true);
+    join(name, hostPassword);
+    setTimeout(() => setBusy(false), 2000);
   };
 
   return (
-    <div style={s.wrap}>
-      <div>
-        <div style={s.title}>🎮 스크럼 파티</div>
-        <div style={s.sub}>이름만 입력하면 바로 시작!</div>
-      </div>
+    <div style={{
+      minHeight: '100dvh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '48px 24px 72px',
+      gap: '28px',
+      fontFamily: theme.font,
+    }}>
+      <div style={{ width: '100%', maxWidth: 480, display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-      <div style={s.card}>
-        <div>
-          <div style={s.label}>내 이름</div>
-          <input
-            style={s.input}
-            placeholder="홍길동"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            maxLength={10}
-            onKeyDown={e => e.key === 'Enter' && (tab === 'create' ? handleCreate() : handleJoin())}
-          />
-        </div>
-
-        <div style={s.divider}>
-          <div style={s.line} />
-          <span style={{ fontSize: '0.8rem' }}>어떻게 할까요?</span>
-          <div style={s.line} />
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={() => setTab('create')}
-            style={{
-              flex: 1, padding: '10px', borderRadius: '10px', fontWeight: 700, fontSize: '0.9rem',
-              background: tab === 'create' ? '#7c3aed' : '#2d2d4e', color: '#fff'
-            }}
-          >방 만들기</button>
-          <button
-            onClick={() => setTab('join')}
-            style={{
-              flex: 1, padding: '10px', borderRadius: '10px', fontWeight: 700, fontSize: '0.9rem',
-              background: tab === 'join' ? '#7c3aed' : '#2d2d4e', color: '#fff'
-            }}
-          >방 입장하기</button>
-        </div>
-
-        {tab === 'join' && (
-          <div>
-            <div style={s.label}>방 코드</div>
-            <input
-              style={{ ...s.input, textTransform: 'uppercase', letterSpacing: '0.2em', textAlign: 'center', fontSize: '1.4rem' }}
-              placeholder="ABCDE"
-              value={code}
-              onChange={e => setCode(e.target.value.toUpperCase())}
-              maxLength={5}
-            />
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: theme.green, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            Wake Your Brain!
           </div>
-        )}
+          <div style={{ marginTop: '12px', fontSize: 'clamp(2.4rem, 6vw, 3.6rem)', fontWeight: 800, color: theme.ink, lineHeight: 1.05 }}>
+            10.0000000000 s
+          </div>
+          <div style={{ marginTop: '10px', fontSize: '1.05rem', color: theme.inkMuted, lineHeight: 1.6 }}>
+            Watch the timer and stop it exactly at 10 seconds.<br />Closest to 10.0 wins.
+          </div>
+        </div>
 
-        <button
-          onClick={tab === 'create' ? handleCreate : handleJoin}
-          style={s.btn('#7c3aed')}
-        >
-          {tab === 'create' ? '🚀 방 만들기' : '🎯 입장하기'}
-        </button>
+        <div style={{ ...cuteCard, padding: '32px' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 700, color: theme.green, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '12px' }}>
+            Nickname
+          </div>
+
+          <input
+            autoFocus
+            type="text"
+            placeholder="Your name"
+            value={nickname}
+            maxLength={20}
+            onChange={e => setNickname(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleJoin()}
+            style={{
+              width: '100%',
+              padding: '16px 18px',
+              borderRadius: theme.radiusMd,
+              border: `1px solid ${joinError ? '#fca5a5' : theme.borderStrong}`,
+              background: theme.white,
+              color: theme.ink,
+              fontSize: '1.2rem',
+              fontWeight: 600,
+              fontFamily: theme.font,
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+
+          {joinError && (
+            <div style={{ marginTop: '8px', color: '#b42318', fontSize: '0.92rem', fontWeight: 600 }}>
+              {joinError}
+            </div>
+          )}
+
+          <div style={{ marginTop: '16px' }}>
+            <button
+              type="button"
+              onClick={handleJoin}
+              disabled={busy}
+              style={{ ...cuteBtn(!busy), cursor: busy ? 'default' : 'pointer' }}
+            >
+              {busy ? 'Joining...' : 'Join'}
+            </button>
+          </div>
+        </div>
+
+        <WeeklyLeaderboard />
       </div>
     </div>
   );

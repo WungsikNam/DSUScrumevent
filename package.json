@@ -1,0 +1,8 @@
+{
+  "name": "dsu-scrum",
+  "private": true,
+  "dependencies": {
+    "@upstash/redis": "^1.34.0",
+    "date-fns": "^4.1.0"
+  }
+}

@@ -1,95 +1,75 @@
-import socket from '../socket';
+import { startGame, startSprint } from '../api';
+import { theme, cuteCard, cuteBtn } from '../theme';
+import BrandHeader from '../components/BrandHeader';
 
-export default function Lobby({ room }) {
-  const isHost = room.isHost;
-
-  const handleStart = () => {
-    if (room.players.length < 2) return alert('최소 2명이 필요해요!');
-    socket.emit('start_game');
-  };
+export default function Lobby({ players, isHost, playerId }) {
+  const handleStart = () => startGame(playerId);
 
   return (
-    <div style={{
-      minHeight: '100dvh', display: 'flex', flexDirection: 'column',
-      alignItems: 'center', padding: '40px 24px', gap: '28px'
-    }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: '0.9rem', color: '#a78bfa', fontWeight: 700 }}>방 코드</div>
-        <div style={{
-          fontSize: '3rem', fontWeight: 900, letterSpacing: '0.3em',
-          background: 'linear-gradient(135deg, #7c3aed, #f472b6)',
-          WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-        }}>
-          {room.code}
-        </div>
-        <div style={{ color: '#6b6b8a', fontSize: '0.85rem' }}>
-          이 코드를 친구들에게 알려주세요!
-        </div>
-      </div>
+    <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 24px 72px', gap: '24px', fontFamily: theme.font }}>
+      <div style={{ width: '100%', maxWidth: theme.shellMax, display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <BrandHeader meta={`${players.length} waiting`} />
 
-      <div style={{
-        background: '#1a1a2e', borderRadius: '20px', padding: '24px',
-        width: '100%', maxWidth: '400px'
-      }}>
-        <div style={{ fontWeight: 700, marginBottom: '16px', color: '#a78bfa' }}>
-          참가자 {room.players.length}명
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {room.players.map((p, i) => (
-            <div key={p.id} style={{
-              display: 'flex', alignItems: 'center', gap: '12px',
-              background: '#0f0f1a', borderRadius: '12px', padding: '12px 16px'
-            }}>
-              <span style={{ fontSize: '1.4rem' }}>
-                {['🦁','🐯','🐻','🦊','🐧','🐙','🦄','🐲','🌟','🔥'][i % 10]}
-              </span>
-              <span style={{ fontWeight: 700, fontSize: '1rem' }}>{p.name}</span>
-              {p.id === room.players[0]?.id && (
-                <span style={{
-                  marginLeft: 'auto', fontSize: '0.7rem', background: '#7c3aed',
-                  padding: '2px 8px', borderRadius: '20px'
-                }}>호스트</span>
-              )}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'flex-start' }}>
+          <div style={{ ...cuteCard, flex: '1 1 320px', padding: '28px' }}>
+            <div style={{ fontSize: '0.82rem', fontWeight: 700, color: theme.green, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Participants</div>
+            <div style={{ marginTop: '8px', fontSize: '1.8rem', fontWeight: 800, color: theme.ink }}>
+              {players.length} {players.length === 1 ? 'person' : 'people'}
             </div>
-          ))}
-        </div>
-      </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '18px' }}>
+              {players.length === 0 ? (
+                <div style={{ color: theme.inkMuted, fontSize: '1rem', padding: '12px 0' }}>No one here yet.</div>
+              ) : players.map((p, i) => (
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', borderRadius: theme.radiusMd, background: p.id === playerId ? theme.greenPale : theme.surfaceAlt, border: `1px solid ${p.id === playerId ? theme.green : theme.border}` }}>
+                  <div style={{ width: 38, height: 38, borderRadius: '50%', background: p.isHost ? theme.gradientMain : theme.greenPale, color: p.isHost ? '#fff' : theme.greenDeep, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, flexShrink: 0 }}>
+                    {p.name.slice(0, 1).toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, color: theme.ink }}>{p.name} {p.id === playerId ? '(you)' : ''}</div>
+                    {p.isHost && <div style={{ fontSize: '0.76rem', color: theme.green, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>Host</div>}
+                  </div>
+                  <div style={{ fontSize: '0.88rem', color: theme.inkMuted }}>#{i + 1}</div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {isHost ? (
-        <div style={{ width: '100%', maxWidth: '400px' }}>
-          <button
-            onClick={handleStart}
-            disabled={room.players.length < 2}
-            style={{
-              width: '100%', padding: '18px', borderRadius: '16px',
-              background: room.players.length >= 2
-                ? 'linear-gradient(135deg, #7c3aed, #f472b6)'
-                : '#2d2d4e',
-              color: '#fff', fontSize: '1.2rem', fontWeight: 900,
-              opacity: room.players.length >= 2 ? 1 : 0.5
-            }}
-          >
-            {room.players.length < 2 ? '최소 2명 필요' : '🎮 게임 시작!'}
-          </button>
-          <div style={{ textAlign: 'center', color: '#6b6b8a', fontSize: '0.8rem', marginTop: '8px' }}>
-            게임 순서: 가위바위보 → 10초 챌린지 → 반응속도
+          <div style={{ ...cuteCard, flex: '1 1 280px', padding: '28px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: theme.green, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Today's game</div>
+              <div style={{ marginTop: '10px', fontSize: '1.6rem', fontWeight: 800, color: theme.ink, lineHeight: 1.2 }}>Wake Your Brain!</div>
+              <div style={{ marginTop: '8px', color: theme.inkMuted, fontSize: '0.96rem', lineHeight: 1.65 }}>
+                Watch the timer count up and stop it as close to{' '}
+                <span style={{ fontFamily: 'monospace', fontWeight: 700, color: theme.greenDeep }}>10.0000000000 s</span> as possible.
+              </div>
+            </div>
+            <div style={{ padding: '14px 16px', borderRadius: theme.radiusMd, background: theme.surfaceMuted, border: `1px solid ${theme.border}` }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: theme.green, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Rounds</div>
+              <div style={{ marginTop: '4px', fontSize: '1.4rem', fontWeight: 800, color: theme.ink }}>3 rounds</div>
+              <div style={{ marginTop: '2px', fontSize: '0.88rem', color: theme.inkMuted }}>Cumulative score determines final ranking</div>
+            </div>
+            {isHost ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button type="button" onClick={handleStart} style={cuteBtn(players.length > 0)}>
+                  ⏱ 10-Second Challenge
+                </button>
+                <button
+                  type="button"
+                  onClick={() => startSprint(playerId)}
+                  style={{ ...cuteBtn(players.length > 0), background: players.length > 0 ? 'linear-gradient(135deg,#dc2626 0%,#b91c1c 100%)' : theme.inkSoft }}
+                >
+                  🏃 100m Sprint
+                </button>
+                <div style={{ marginTop: '4px', fontSize: '0.88rem', color: theme.inkMuted, textAlign: 'center' }}>Start when everyone is in the room.</div>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', color: theme.greenDeep, fontWeight: 700, fontSize: '1rem', padding: '16px 0' }}>
+                Waiting for the host to start the game...
+              </div>
+            )}
           </div>
         </div>
-      ) : (
-        <div style={{
-          color: '#a78bfa', fontSize: '1rem', textAlign: 'center',
-          animation: 'pulse 1.5s ease-in-out infinite'
-        }}>
-          ⏳ 호스트가 게임을 시작할 때까지 기다려 주세요...
-        </div>
-      )}
-
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
+      </div>
     </div>
   );
 }
