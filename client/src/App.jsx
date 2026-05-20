@@ -5,6 +5,7 @@ import LobbyScreen from './components/LobbyScreen';
 import CountdownScreen from './components/CountdownScreen';
 import GameScreen from './components/GameScreen';
 import ReactionGame from './components/ReactionGame';
+import ReactionOnboarding from './components/ReactionOnboarding';
 import ResultsScreen from './components/ResultsScreen';
 
 function getOrCreatePlayerId() {
@@ -63,10 +64,15 @@ export default function App() {
 
   if (!joined) return <LoginScreen onJoin={join} error={loginError} />;
 
-  const effectiveState = room.state === 'countdown' && room.goTime && Date.now() >= room.goTime ? 'playing' : room.state;
+  const now = Date.now();
+  const effectiveState =
+    room.state === 'countdown' && room.goTime && now >= room.goTime ? 'playing' :
+    room.state === 'briefing' && room.briefingEndTime && now >= room.briefingEndTime ? 'playing' :
+    room.state;
 
   if (effectiveState === 'countdown') return <CountdownScreen goTime={room.goTime} />;
   if (effectiveState === 'playing' && room.gameType === 'sprint') return <GameScreen room={room} myId={playerId} onPress={press} />;
+  if (effectiveState === 'briefing') return <ReactionOnboarding briefingEndTime={room.briefingEndTime} />;
   if (effectiveState === 'playing' && room.gameType === 'reaction') return <ReactionGame room={room} myId={playerId} onReact={react} />;
   if (effectiveState === 'results') return <ResultsScreen room={room} myId={playerId} isHost={isHost} onReset={reset} />;
   return <LobbyScreen room={room} isHost={isHost} myId={playerId} onStart={start} onStartReaction={startReaction} onLeave={leave} />;
