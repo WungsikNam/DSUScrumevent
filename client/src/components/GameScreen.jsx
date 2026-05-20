@@ -1,20 +1,22 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const RANK_COLORS = ['#ffd700', '#c0c0c0', '#cd7f32'];
 const PLAYER_COLORS = ['#6c63ff', '#ff6b6b', '#51cf66', '#ffd43b', '#74c0fc', '#f783ac', '#a9e34b', '#63e6be', '#ff922b', '#cc5de8'];
+const TARGET = 50;
 
 export default function GameScreen({ room, myId, onPress }) {
   const localCount = useRef(0);
   const lastSent = useRef(0);
+  const [, forceRender] = useState(0);
 
-  // Batch send every 200ms
+  // Batch send every 100ms
   useEffect(() => {
     const id = setInterval(() => {
       if (localCount.current > lastSent.current) {
         lastSent.current = localCount.current;
         onPress(localCount.current);
       }
-    }, 200);
+    }, 100);
     return () => clearInterval(id);
   }, [onPress]);
 
@@ -23,19 +25,38 @@ export default function GameScreen({ room, myId, onPress }) {
     const me = room?.players?.find(p => p.id === myId);
     if (me?.rank != null) return;
     const handler = (e) => {
-      if (e.code === 'Space') { e.preventDefault(); localCount.current++; }
+      if (e.code === 'Space') {
+        e.preventDefault();
+        localCount.current = Math.min(localCount.current + 1, TARGET);
+        forceRender(n => n + 1);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [myId, room]);
 
-  const handleTap = () => { localCount.current++; };
+  const handleTap = () => {
+    const me = room?.players?.find(p => p.id === myId);
+    if (me?.rank != null) return;
+    localCount.current = Math.min(localCount.current + 1, TARGET);
+    forceRender(n => n + 1);
+  };
+
+  // 내 진행도는 로컬 카운트 우선, 다른 플레이어는 서버 값
+  const getProgress = (p) => {
+    if (p.id === myId) return Math.min(100, Math.round((localCount.current / TARGET) * 100));
+    return p.progress;
+  };
+  const getPresses = (p) => {
+    if (p.id === myId) return localCount.current;
+    return p.presses;
+  };
 
   const players = [...(room?.players || [])].sort((a, b) => {
     if (a.rank && b.rank) return a.rank - b.rank;
     if (a.rank) return -1;
     if (b.rank) return 1;
-    return b.progress - a.progress;
+    return getProgress(b) - getProgress(a);
   });
 
   const me = room?.players?.find(p => p.id === myId);
@@ -45,7 +66,7 @@ export default function GameScreen({ room, myId, onPress }) {
     <div style={{ minHeight: '100dvh', background: '#0f0f1a', color: '#fff', display: 'flex', flexDirection: 'column', padding: '20px 16px', gap: 16 }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 22, fontWeight: 800 }}>🏁 Sprint Race</div>
-        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>Goal: {room?.target || 150} presses</div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>Goal: {TARGET} presses</div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
@@ -54,6 +75,9 @@ export default function GameScreen({ room, myId, onPress }) {
           const color = PLAYER_COLORS[colorIdx];
           const isMe = p.id === myId;
           const finished = p.rank != null;
+          const progress = getProgress(p);
+          const presses = getPresses(p);
+
           return (
             <div key={p.id} style={{
               background: isMe ? 'rgba(108,99,255,0.15)' : 'rgba(255,255,255,0.04)',
@@ -70,12 +94,12 @@ export default function GameScreen({ room, myId, onPress }) {
                   {p.name} {isMe && <span style={{ fontSize: 12, opacity: 0.5 }}>(you)</span>}
                 </span>
                 <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>
-                  {p.timeTaken ? `${p.timeTaken}s` : `${p.presses}/${room?.target || 150}`}
+                  {p.timeTaken ? `${p.timeTaken}s` : `${presses}/${TARGET}`}
                 </span>
               </div>
               <div style={{ position: 'relative', height: 36, background: 'rgba(255,255,255,0.06)', borderRadius: 8, overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${p.progress}%`, background: `${color}33`, borderRadius: 8, transition: 'width 0.2s ease' }} />
-                <div style={{ position: 'absolute', left: `calc(${Math.max(2, p.progress)}% - 18px)`, top: '50%', transform: 'translateY(-50%)', fontSize: 22, transition: 'left 0.2s ease' }}>
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${progress}%`, background: `${color}33`, borderRadius: 8, transition: isMe ? 'none' : 'width 0.15s ease' }} />
+                <div style={{ position: 'absolute', left: `calc(${Math.max(2, progress)}% - 18px)`, top: '50%', transform: 'translateY(-50%)', fontSize: 22, transition: isMe ? 'none' : 'left 0.15s ease' }}>
                   {finished ? '🏁' : '🏃'}
                 </div>
               </div>

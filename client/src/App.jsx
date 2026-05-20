@@ -31,7 +31,7 @@ export default function App() {
       } catch {}
     };
     poll();
-    const id = setInterval(poll, 300);
+    const id = setInterval(poll, 200);
     return () => clearInterval(id);
   }, [joined, playerId]);
 
