@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getRoom, joinRoom, leaveRoom, startGame, sendPress, resetGame } from './api';
+import { getRoom, joinRoom, leaveRoom, startGame, sendPress, startReactionGame, sendReaction, resetGame } from './api';
 import LoginScreen from './components/LoginScreen';
 import LobbyScreen from './components/LobbyScreen';
 import CountdownScreen from './components/CountdownScreen';
 import GameScreen from './components/GameScreen';
+import ReactionGame from './components/ReactionGame';
 import ResultsScreen from './components/ResultsScreen';
 
 function getOrCreatePlayerId() {
@@ -16,10 +17,9 @@ export default function App() {
   const playerId = useRef(getOrCreatePlayerId()).current;
   const [joined, setJoined] = useState(false);
   const [isHost, setIsHost] = useState(false);
-  const [room, setRoom] = useState({ state: 'lobby', players: [], target: 150 });
+  const [room, setRoom] = useState({ state: 'lobby', players: [], target: 50 });
   const [loginError, setLoginError] = useState('');
 
-  // Poll room state
   useEffect(() => {
     if (!joined) return;
     const poll = async () => {
@@ -52,22 +52,22 @@ export default function App() {
     sessionStorage.removeItem('playerId');
     setJoined(false);
     setIsHost(false);
-    setRoom({ state: 'lobby', players: [], target: 150 });
+    setRoom({ state: 'lobby', players: [], target: 50 });
   }, [playerId]);
 
   const start = useCallback(() => startGame(playerId).catch(() => {}), [playerId]);
+  const startReaction = useCallback(() => startReactionGame(playerId).catch(() => {}), [playerId]);
   const press = useCallback((count) => sendPress(playerId, count).catch(() => {}), [playerId]);
+  const react = useCallback((rt) => sendReaction(playerId, rt).catch(() => {}), [playerId]);
   const reset = useCallback(() => resetGame(playerId).catch(() => {}), [playerId]);
 
   if (!joined) return <LoginScreen onJoin={join} error={loginError} />;
 
-  // Client-side: treat countdown as playing if goTime has passed
-  const effectiveState = room.state === 'countdown' && room.goTime && Date.now() >= room.goTime
-    ? 'playing'
-    : room.state;
+  const effectiveState = room.state === 'countdown' && room.goTime && Date.now() >= room.goTime ? 'playing' : room.state;
 
   if (effectiveState === 'countdown') return <CountdownScreen goTime={room.goTime} />;
-  if (effectiveState === 'playing') return <GameScreen room={room} myId={playerId} onPress={press} />;
+  if (effectiveState === 'playing' && room.gameType === 'sprint') return <GameScreen room={room} myId={playerId} onPress={press} />;
+  if (effectiveState === 'playing' && room.gameType === 'reaction') return <ReactionGame room={room} myId={playerId} onReact={react} />;
   if (effectiveState === 'results') return <ResultsScreen room={room} myId={playerId} isHost={isHost} onReset={reset} />;
-  return <LobbyScreen room={room} isHost={isHost} myId={playerId} onStart={start} onLeave={leave} />;
+  return <LobbyScreen room={room} isHost={isHost} myId={playerId} onStart={start} onStartReaction={startReaction} onLeave={leave} />;
 }

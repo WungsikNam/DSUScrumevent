@@ -51,8 +51,10 @@ export default function ResultsScreen({ room, myId, isHost, onReset }) {
                 <div style={{ fontSize: 17, fontWeight: isMe ? 700 : 500 }}>
                   {p.name} {isMe && <span style={{ fontSize: 12, opacity: 0.5 }}>(you)</span>}
                 </div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
-                  {p.timeTaken ? `${p.timeTaken}s` : `${p.presses} / ${room?.target || 150} presses`}
+                <div style={{ fontSize: 13, color: p.tooEarly ? '#ff4444' : 'rgba(255,255,255,0.4)', marginTop: 2 }}>
+                  {room?.gameType === 'reaction'
+                    ? (p.tooEarly ? 'TOO EARLY ❌' : p.reactionTime >= 99998 ? 'DNF' : `${p.reactionTime}ms`)
+                    : (p.timeTaken ? `${p.timeTaken}s` : `${p.presses} / ${room?.target || 50} presses`)}
                 </div>
               </div>
               {p.rank === 1 && <div style={{ fontSize: 22 }}>🎉</div>}

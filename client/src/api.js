@@ -13,3 +13,5 @@ export const leaveRoom = (playerId) => post('/api/leave', { playerId });
 export const startGame = (playerId) => post('/api/start', { playerId });
 export const sendPress = (playerId, count) => post('/api/sprint-press', { playerId, count });
 export const resetGame = (playerId) => post('/api/reset', { playerId });
+export const startReactionGame = (playerId) => post('/api/react-start', { playerId });
+export const sendReaction = (playerId, reactionTime) => post('/api/react-press', { playerId, reactionTime });

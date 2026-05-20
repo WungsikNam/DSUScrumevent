@@ -29,7 +29,7 @@ const S = {
   waiting: { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 8 },
 };
 
-export default function LobbyScreen({ room, isHost, myId, onStart, onLeave }) {
+export default function LobbyScreen({ room, isHost, myId, onStart, onStartReaction, onLeave }) {
   const players = room?.players || [];
 
   return (
@@ -62,7 +62,10 @@ export default function LobbyScreen({ room, isHost, myId, onStart, onLeave }) {
       </div>
 
       {isHost
-        ? <button style={S.startBtn} onClick={onStart}>Start Game</button>
+        ? <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 440 }}>
+            <button style={{ ...S.startBtn, flex: 1, background: '#6c63ff', fontSize: 15 }} onClick={onStart}>🏃 Sprint Race</button>
+            <button style={{ ...S.startBtn, flex: 1, background: '#ff6b6b', fontSize: 15 }} onClick={onStartReaction}>⚡ Reaction</button>
+          </div>
         : <div style={S.waiting}>Waiting for host to start the game...</div>
       }
     </div>
