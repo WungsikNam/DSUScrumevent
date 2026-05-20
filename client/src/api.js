@@ -15,3 +15,5 @@ export const sendPress = (playerId, count) => post('/api/sprint-press', { player
 export const resetGame = (playerId) => post('/api/reset', { playerId });
 export const startReactionGame = (playerId) => post('/api/react-start', { playerId });
 export const sendReaction = (playerId, reactionTime) => post('/api/react-press', { playerId, reactionTime });
+export const startColorGame = (playerId) => post('/api/color-start', { playerId });
+export const sendColorTap = (playerId, color) => post('/api/color-tap', { playerId, color });

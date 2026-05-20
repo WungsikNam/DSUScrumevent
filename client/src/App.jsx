@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getRoom, joinRoom, leaveRoom, startGame, sendPress, startReactionGame, sendReaction, resetGame } from './api';
+import { getRoom, joinRoom, leaveRoom, startGame, sendPress, startReactionGame, sendReaction, startColorGame, sendColorTap, resetGame } from './api';
 import LoginScreen from './components/LoginScreen';
 import LobbyScreen from './components/LobbyScreen';
 import CountdownScreen from './components/CountdownScreen';
 import GameScreen from './components/GameScreen';
-import ReactionGame from './components/ReactionGame';
 import ReactionOnboarding from './components/ReactionOnboarding';
+import ReactionGame from './components/ReactionGame';
+import ColorGame from './components/ColorGame';
 import ResultsScreen from './components/ResultsScreen';
 
 function getOrCreatePlayerId() {
@@ -51,16 +52,17 @@ export default function App() {
   const leave = useCallback(async () => {
     await leaveRoom(playerId).catch(() => {});
     sessionStorage.removeItem('playerId');
-    setJoined(false);
-    setIsHost(false);
+    setJoined(false); setIsHost(false);
     setRoom({ state: 'lobby', players: [], target: 50 });
   }, [playerId]);
 
-  const start = useCallback(() => startGame(playerId).catch(() => {}), [playerId]);
-  const startReaction = useCallback(() => startReactionGame(playerId).catch(() => {}), [playerId]);
-  const press = useCallback((count) => sendPress(playerId, count).catch(() => {}), [playerId]);
-  const react = useCallback((rt) => sendReaction(playerId, rt).catch(() => {}), [playerId]);
-  const reset = useCallback(() => resetGame(playerId).catch(() => {}), [playerId]);
+  const start       = useCallback(() => startGame(playerId).catch(() => {}), [playerId]);
+  const startReact  = useCallback(() => startReactionGame(playerId).catch(() => {}), [playerId]);
+  const startColor  = useCallback(() => startColorGame(playerId).catch(() => {}), [playerId]);
+  const press       = useCallback((count) => sendPress(playerId, count).catch(() => {}), [playerId]);
+  const react       = useCallback((rt) => sendReaction(playerId, rt).catch(() => {}), [playerId]);
+  const colorTap    = useCallback((color) => sendColorTap(playerId, color).catch(() => {}), [playerId]);
+  const reset       = useCallback(() => resetGame(playerId).catch(() => {}), [playerId]);
 
   if (!joined) return <LoginScreen onJoin={join} error={loginError} />;
 
@@ -71,9 +73,11 @@ export default function App() {
     room.state;
 
   if (effectiveState === 'countdown') return <CountdownScreen goTime={room.goTime} />;
+  if (effectiveState === 'briefing' && room.gameType === 'reaction') return <ReactionOnboarding briefingEndTime={room.briefingEndTime} />;
+  if (effectiveState === 'briefing' && room.gameType === 'color') return <ReactionOnboarding briefingEndTime={room.briefingEndTime} gameType="color" />;
   if (effectiveState === 'playing' && room.gameType === 'sprint') return <GameScreen room={room} myId={playerId} onPress={press} />;
-  if (effectiveState === 'briefing') return <ReactionOnboarding briefingEndTime={room.briefingEndTime} />;
   if (effectiveState === 'playing' && room.gameType === 'reaction') return <ReactionGame room={room} myId={playerId} onReact={react} />;
+  if (effectiveState === 'playing' && room.gameType === 'color') return <ColorGame room={room} myId={playerId} onTap={colorTap} />;
   if (effectiveState === 'results') return <ResultsScreen room={room} myId={playerId} isHost={isHost} onReset={reset} />;
-  return <LobbyScreen room={room} isHost={isHost} myId={playerId} onStart={start} onStartReaction={startReaction} onLeave={leave} />;
+  return <LobbyScreen room={room} isHost={isHost} myId={playerId} onStart={start} onStartReaction={startReact} onStartColor={startColor} onLeave={leave} />;
 }
