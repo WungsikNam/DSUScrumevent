@@ -20,6 +20,7 @@ export default function ResultsScreen({ room, myId, isHost, onReset }) {
       padding: '40px 16px', gap: 24,
     }}>
       <div style={{ textAlign: 'center' }}>
+        <img src="/ifelse-logo.png" alt="ifelse" style={{ height: 36, marginBottom: 12, objectFit: 'contain' }} />
         <div style={{ fontSize: 40 }}>🏆</div>
         <div style={{ fontSize: 28, fontWeight: 900, marginTop: 8 }}>Final Results</div>
       </div>

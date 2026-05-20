@@ -38,7 +38,8 @@ export default function LoginScreen({ onJoin, error }) {
 
   return (
     <div style={S.wrap}>
-      <div>
+      <div style={{ textAlign: 'center' }}>
+        <img src="/ifelse-logo.png" alt="ifelse" style={{ height: 48, marginBottom: 12, objectFit: 'contain' }} />
         <div style={S.title}>🏃 Mini Games</div>
         <div style={S.sub}>Enter your nickname to join</div>
       </div>

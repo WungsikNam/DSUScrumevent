@@ -40,6 +40,7 @@ export default function LobbyScreen({ room, isHost, myId, onStart, onLeave }) {
         </button>
       </div>
       <div style={{ textAlign: 'center' }}>
+        <img src="/ifelse-logo.png" alt="ifelse" style={{ height: 40, marginBottom: 10, objectFit: 'contain' }} />
         <div style={S.title}>🏃 Sprint Race</div>
         <div style={S.sub}>Waiting · {players.length} player{players.length !== 1 ? 's' : ''} connected</div>
       </div>
