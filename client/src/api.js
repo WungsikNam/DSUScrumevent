@@ -17,3 +17,5 @@ export const startReactionGame = (playerId) => post('/api/react-start', { player
 export const sendReaction = (playerId, reactionTime) => post('/api/react-press', { playerId, reactionTime });
 export const startColorGame = (playerId) => post('/api/color-start', { playerId });
 export const sendColorTap = (playerId, color) => post('/api/color-tap', { playerId, color });
+export const startEmojiGame = (playerId) => post('/api/emoji-start', { playerId });
+export const sendEmojiTap = (playerId, emoji) => post('/api/emoji-tap', { playerId, emoji });
