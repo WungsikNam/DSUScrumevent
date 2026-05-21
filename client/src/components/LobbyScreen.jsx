@@ -29,7 +29,7 @@ const S = {
   waiting: { fontSize: 14, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 8 },
 };
 
-export default function LobbyScreen({ room, isHost, myId, onStart, onStartReaction, onStartColor, onStartEmoji, onStartTyping, onLeave }) {
+export default function LobbyScreen({ room, isHost, myId, onStart, onStartReaction, onStartColor, onStartEmoji, onStartTyping, onStartQuiz, onLeave }) {
   const players = room?.players || [];
 
   return (
@@ -71,7 +71,10 @@ export default function LobbyScreen({ room, isHost, myId, onStart, onStartReacti
               <button style={{ ...S.startBtn, flex: 1, background: '#f59f00', fontSize: 15 }} onClick={onStartColor}>🎨 Color</button>
               <button style={{ ...S.startBtn, flex: 1, background: '#51cf66', fontSize: 15 }} onClick={onStartEmoji}>🎯 Emoji</button>
             </div>
-            <button style={{ ...S.startBtn, background: '#339af0', fontSize: 15 }} onClick={onStartTyping}>⌨️ Typing Rush</button>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button style={{ ...S.startBtn, flex: 1, background: '#339af0', fontSize: 15 }} onClick={onStartTyping}>⌨️ Typing</button>
+              <button style={{ ...S.startBtn, flex: 1, background: '#e64980', fontSize: 15 }} onClick={onStartQuiz}>📸 Photo Quiz</button>
+            </div>
           </div>
         : <div style={S.waiting}>Waiting for host to start the game...</div>
       }

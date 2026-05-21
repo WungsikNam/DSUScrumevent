@@ -54,8 +54,8 @@ export default function ResultsScreen({ room, myId, isHost, onReset }) {
                 <div style={{ fontSize: 13, color: p.tooEarly ? '#ff4444' : 'rgba(255,255,255,0.4)', marginTop: 2 }}>
                   {room?.gameType === 'reaction'
                     ? (p.tooEarly ? 'TOO EARLY ❌' : p.reactionTime >= 99998 ? 'DNF' : `${p.reactionTime}ms`)
-                    : (room?.gameType === 'color' || room?.gameType === 'emoji' || room?.gameType === 'typing')
-                    ? `${p.score || 0} / ${room?.colorGame?.maxRounds || room?.emojiGame?.maxRounds || room?.typingGame?.maxRounds || 10} points`
+                    : (room?.gameType === 'color' || room?.gameType === 'emoji' || room?.gameType === 'typing' || room?.gameType === 'quiz')
+                    ? `${p.score || 0} / ${room?.colorGame?.maxRounds || room?.emojiGame?.maxRounds || room?.typingGame?.maxRounds || room?.quizGame?.maxRounds || 10} points`
                     : (p.timeTaken ? `${p.timeTaken}s` : `${p.presses} / ${room?.target || 50} presses`)}
                 </div>
               </div>

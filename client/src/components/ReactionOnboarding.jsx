@@ -4,6 +4,7 @@ export default function ReactionOnboarding({ briefingEndTime, gameType }) {
   if (gameType === 'color') return <ColorOnboarding briefingEndTime={briefingEndTime} />;
   if (gameType === 'emoji') return <EmojiOnboarding briefingEndTime={briefingEndTime} />;
   if (gameType === 'typing') return <TypingOnboarding briefingEndTime={briefingEndTime} />;
+  if (gameType === 'quiz') return <QuizOnboarding briefingEndTime={briefingEndTime} />;
   return <ReactionOnboardingInner briefingEndTime={briefingEndTime} />;
 }
 
@@ -57,6 +58,31 @@ function EmojiOnboarding({ briefingEndTime }) {
           <div style={{ fontSize: 22, marginBottom: 6 }}>🏆</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: '#51cf66' }}>10 rounds — most points wins!</div>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>First correct tap = 1 point</div>
+        </div>
+      </div>
+      <div>
+        <div style={{ fontSize: 48, fontWeight: 900, color: remaining <= 2 ? '#ff6b6b' : '#ffd43b' }}>{remaining}</div>
+        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>Starting in...</div>
+      </div>
+    </div>
+  );
+}
+
+function QuizOnboarding({ briefingEndTime }) {
+  const [remaining, setRemaining] = useState(4);
+  useEffect(() => {
+    const id = setInterval(() => setRemaining(Math.max(0, Math.ceil((briefingEndTime - Date.now()) / 1000))), 100);
+    return () => clearInterval(id);
+  }, [briefingEndTime]);
+  return (
+    <div style={{ minHeight: '100dvh', background: '#0f0f1a', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28, padding: 32, textAlign: 'center' }}>
+      <div style={{ fontSize: 64 }}>📸</div>
+      <div style={{ fontSize: 28, fontWeight: 900 }}>Photo Quiz</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: '100%', maxWidth: 340 }}>
+        <div style={{ background: 'rgba(230,73,128,0.12)', border: '1px solid rgba(230,73,128,0.3)', borderRadius: 14, padding: '16px 20px' }}>
+          <div style={{ fontSize: 22, marginBottom: 6 }}>🔍</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#f783ac' }}>Look at the photo and guess!</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>Pick the correct answer from 4 options. First correct tap wins!</div>
         </div>
       </div>
       <div>

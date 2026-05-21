@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { getRoom, joinRoom, leaveRoom, startGame, sendPress, startReactionGame, sendReaction, startColorGame, sendColorTap, startEmojiGame, sendEmojiTap, startTypingGame, sendTypingSubmit, resetGame } from './api';
+import { getRoom, joinRoom, leaveRoom, startGame, sendPress, startReactionGame, sendReaction, startColorGame, sendColorTap, startEmojiGame, sendEmojiTap, startTypingGame, sendTypingSubmit, startQuizGame, sendQuizAnswer, resetGame } from './api';
 import LoginScreen from './components/LoginScreen';
 import LobbyScreen from './components/LobbyScreen';
 import CountdownScreen from './components/CountdownScreen';
@@ -9,6 +9,7 @@ import ReactionGame from './components/ReactionGame';
 import ColorGame from './components/ColorGame';
 import EmojiGame from './components/EmojiGame';
 import TypingGame from './components/TypingGame';
+import QuizGame from './components/QuizGame';
 import ResultsScreen from './components/ResultsScreen';
 
 function getOrCreatePlayerId() {
@@ -63,6 +64,8 @@ export default function App() {
   const startColor  = useCallback(() => startColorGame(playerId).catch(() => {}), [playerId]);
   const startEmoji  = useCallback(() => startEmojiGame(playerId).catch(() => {}), [playerId]);
   const startTyping = useCallback(() => startTypingGame(playerId).catch(() => {}), [playerId]);
+  const startQuiz   = useCallback(() => startQuizGame(playerId).catch(() => {}), [playerId]);
+  const quizAnswer  = useCallback((answer) => sendQuizAnswer(playerId, answer).catch(() => {}), [playerId]);
   const typingSubmit = useCallback((text) => sendTypingSubmit(playerId, text).catch(() => {}), [playerId]);
   const emojiTap    = useCallback((emoji) => sendEmojiTap(playerId, emoji).catch(() => {}), [playerId]);
   const press       = useCallback((count) => sendPress(playerId, count).catch(() => {}), [playerId]);
@@ -88,6 +91,8 @@ export default function App() {
   if (effectiveState === 'playing' && room.gameType === 'emoji') return <EmojiGame room={room} myId={playerId} onTap={emojiTap} />;
   if (effectiveState === 'briefing' && room.gameType === 'typing') return <ReactionOnboarding briefingEndTime={room.briefingEndTime} gameType="typing" />;
   if (effectiveState === 'playing' && room.gameType === 'typing') return <TypingGame room={room} myId={playerId} onSubmit={typingSubmit} />;
+  if (effectiveState === 'briefing' && room.gameType === 'quiz') return <ReactionOnboarding briefingEndTime={room.briefingEndTime} gameType="quiz" />;
+  if (effectiveState === 'playing' && room.gameType === 'quiz') return <QuizGame room={room} myId={playerId} onAnswer={quizAnswer} />;
   if (effectiveState === 'results') return <ResultsScreen room={room} myId={playerId} isHost={isHost} onReset={reset} />;
-  return <LobbyScreen room={room} isHost={isHost} myId={playerId} onStart={start} onStartReaction={startReact} onStartColor={startColor} onStartEmoji={startEmoji} onStartTyping={startTyping} onLeave={leave} />;
+  return <LobbyScreen room={room} isHost={isHost} myId={playerId} onStart={start} onStartReaction={startReact} onStartColor={startColor} onStartEmoji={startEmoji} onStartTyping={startTyping} onStartQuiz={startQuiz} onLeave={leave} />;
 }

@@ -17,7 +17,9 @@ export const startReactionGame = (playerId) => post('/api/react', { action: 'sta
 export const sendReaction = (playerId, reactionTime) => post('/api/react', { action: 'press', playerId, reactionTime });
 export const startTypingGame = (playerId) => post('/api/typing', { action: 'start', playerId });
 export const sendTypingSubmit = (playerId, text) => post('/api/typing', { action: 'submit', playerId, text });
-export const startColorGame = (playerId) => post('/api/color-start', { playerId });
-export const sendColorTap = (playerId, color) => post('/api/color-tap', { playerId, color });
+export const startColorGame = (playerId) => post('/api/color', { action: 'start', playerId });
+export const sendColorTap = (playerId, color) => post('/api/color', { action: 'tap', playerId, color });
+export const startQuizGame = (playerId) => post('/api/quiz', { action: 'start', playerId });
+export const sendQuizAnswer = (playerId, answer) => post('/api/quiz', { action: 'answer', playerId, answer });
 export const startEmojiGame = (playerId) => post('/api/emoji-start', { playerId });
 export const sendEmojiTap = (playerId, emoji) => post('/api/emoji-tap', { playerId, emoji });
