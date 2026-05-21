@@ -57,8 +57,9 @@ export default function ColorGame({ room, myId, onTap }) {
 
       {/* 버튼 4개 */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, paddingBottom: 16 }}>
-        {Object.entries(COLORS).map(([key, c]) => {
-          const isTarget = cg.currentColor === key && !isWaiting;
+        {(cg.buttonOrder || Object.keys(COLORS)).map((key) => {
+        const c = COLORS[key];
+        const isTarget = cg.currentColor === key && !isWaiting;
           return (
             <button
               key={key}
