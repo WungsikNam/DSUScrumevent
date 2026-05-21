@@ -13,6 +13,10 @@ export default function ResultsScreen({ room, myId, isHost, onReset }) {
 
   const players = [...(room?.players || [])].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
 
+  const isScoreGame = ['color','emoji','typing','quiz'].includes(room?.gameType);
+  const scores = players.map(p => isScoreGame ? (p.score || 0) : p.rank);
+  const isDraw = players.length > 1 && scores.every(s => s === scores[0]);
+
   return (
     <div style={{
       minHeight: '100dvh', background: '#0f0f1a', color: '#fff',
@@ -21,8 +25,9 @@ export default function ResultsScreen({ room, myId, isHost, onReset }) {
     }}>
       <div style={{ textAlign: 'center' }}>
         <img src="/ifelse-logo.png" alt="ifelse" style={{ height: 36, marginBottom: 12, objectFit: 'contain' }} />
-        <div style={{ fontSize: 40 }}>🏆</div>
-        <div style={{ fontSize: 28, fontWeight: 900, marginTop: 8 }}>Final Results</div>
+        <div style={{ fontSize: 40 }}>{isDraw ? '🤝' : '🏆'}</div>
+        <div style={{ fontSize: 28, fontWeight: 900, marginTop: 8 }}>{isDraw ? "It's a Draw!" : 'Final Results'}</div>
+        {isDraw && <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', marginTop: 6 }}>Everyone tied!</div>}
       </div>
 
       <div style={{ width: '100%', maxWidth: 420, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -40,12 +45,12 @@ export default function ResultsScreen({ room, myId, isHost, onReset }) {
               }}
             >
               <div style={{
-                fontSize: p.rank <= 3 ? 28 : 18,
+                fontSize: isDraw ? 28 : p.rank <= 3 ? 28 : 18,
                 fontWeight: 900,
-                color: rankColor || 'rgba(255,255,255,0.4)',
+                color: isDraw ? '#74c0fc' : rankColor || 'rgba(255,255,255,0.4)',
                 minWidth: 36, textAlign: 'center',
               }}>
-                {p.rank <= 3 ? MEDALS[p.rank - 1] : `#${p.rank}`}
+                {isDraw ? '🤝' : p.rank <= 3 ? MEDALS[p.rank - 1] : `#${p.rank}`}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 17, fontWeight: isMe ? 700 : 500 }}>
@@ -59,7 +64,7 @@ export default function ResultsScreen({ room, myId, isHost, onReset }) {
                     : (p.timeTaken ? `${p.timeTaken}s` : `${p.presses} / ${room?.target || 50} presses`)}
                 </div>
               </div>
-              {p.rank === 1 && <div style={{ fontSize: 22 }}>🎉</div>}
+              {!isDraw && p.rank === 1 && <div style={{ fontSize: 22 }}>🎉</div>}
             </div>
           );
         })}
