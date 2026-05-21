@@ -8,6 +8,7 @@ module.exports = async (req, res) => {
     room = await checkTimeouts(room);
     res.json(publicRoom(room));
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('[room] error:', e.message, e.stack);
+    res.status(500).json({ error: e.message, stack: e.stack });
   }
 };
