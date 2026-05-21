@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 
+const LEVEL_COLORS = ['#51cf66','#74c0fc','#ffd43b','#ff922b','#ff6b6b'];
+const LEVEL_TIME_MS = [7000, 9000, 11000, 13000, 15000];
+function getLevelColor(round) { return LEVEL_COLORS[Math.min(round - 1, 4)]; }
+
 export default function TypingGame({ room, myId, onSubmit }) {
   const tg = room?.typingGame;
   const [input, setInput] = useState('');
@@ -25,7 +29,8 @@ export default function TypingGame({ room, myId, onSubmit }) {
   const winner = isWaiting ? room.players?.find(p => p.id === tg.roundWinner) : null;
   const iWon = tg.roundWinner === myId;
   const sorted = [...(room.players || [])].sort((a, b) => (b.score || 0) - (a.score || 0));
-  const timeLeft = tg.roundStartTime ? Math.max(0, Math.ceil((tg.roundStartTime + 10000 - Date.now()) / 1000)) : 10;
+  const roundMs = LEVEL_TIME_MS[Math.min((tg.round || 1) - 1, 4)];
+  const timeLeft = tg.roundStartTime ? Math.max(0, Math.ceil((tg.roundStartTime + roundMs - Date.now()) / 1000)) : roundMs / 1000;
 
   // 차이 계산
   const winnerTime = tg.winnerTime;
@@ -50,7 +55,12 @@ export default function TypingGame({ room, myId, onSubmit }) {
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontSize: 16, fontWeight: 800 }}>⌨️ Typing Rush</div>
-        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>Round {tg.round} / {tg.maxRounds}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, background: getLevelColor(tg.round), color: '#fff', borderRadius: 6, padding: '3px 8px' }}>
+            LV {tg.round}
+          </div>
+          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.45)' }}>{tg.round} / {tg.maxRounds}</div>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
