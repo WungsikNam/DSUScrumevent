@@ -1,4 +1,4 @@
-const { recordReaction, publicRoom } = require('../lib/game');
+const { startTypingGame, recordTypingSubmit, publicRoom } = require('../lib/game');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -7,10 +7,10 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
   try {
-    const { playerId, reactionTime } = req.body;
-    const { room } = await recordReaction({ playerId, reactionTime });
+    const { action, playerId, text } = req.body;
+    let room;
+    if (action === 'start') room = await startTypingGame(playerId);
+    else { const r = await recordTypingSubmit({ playerId, text }); room = r.room; }
     res.json({ ok: true, room: publicRoom(room) });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  } catch (e) { res.status(400).json({ error: e.message }); }
 };
