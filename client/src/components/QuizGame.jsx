@@ -80,8 +80,8 @@ export default function QuizGame({ room, myId, onAnswer }) {
         </div>
       ) : (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', maxHeight: 260, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}>
-            <img src={qg.image} alt="Who is this?" style={{ width: '100%', maxHeight: 260, objectFit: 'cover' }} />
+          <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#111' }}>
+            <img src={qg.image} alt="Who is this?" style={{ width: '100%', maxHeight: 320, objectFit: 'contain' }} />
             <div style={{ position: 'absolute', top: 10, right: 12, background: 'rgba(0,0,0,0.6)', borderRadius: 8, padding: '4px 10px', fontSize: 14, fontWeight: 700, color: timeLeft <= 3 ? '#ff6b6b' : '#fff' }}>
               ⏱ {timeLeft}s
             </div>
